@@ -1,107 +1,171 @@
-# app.py - Main Flask Application
-from flask import Flask, render_template, request, redirect, url_for, flash
+# app.py - Flask portfolio for Shivam Ramola
 from datetime import datetime
-import os
-import sqlite3
+
+from flask import Flask, render_template
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
-class DatabaseError(Exception):
-    pass
+SITE = {
+    "name": "Shivam Ramola",
+    "email": "shivamramola00@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/shivamramola/",
+    "github": "https://github.com/ShivamRamola",
+    "resume": "Shivam_Ramola_Resume.pdf",
+    "location": "Noida, India",
+}
 
-@app.errorhandler(DatabaseError)
-def handle_database_error(e):
-    return str(e), 500
+EXPERIENCE = [
+    {
+        "role": "Data Annotator",
+        "org": "Cogito Tech",
+        "dates": "08/2026 - Present",
+        "points": [
+            "Annotate and label data for AI/ML training projects following detailed client guidelines.",
+            "Maintain accuracy and consistency across tasks while meeting quality and turnaround targets.",
+            "Flag unclear cases and guideline gaps, and apply reviewer feedback to improve output quality.",
+        ],
+    },
+    {
+        "role": "Technical / Customer Support Executive",
+        "org": "iEnergizer, Noida",
+        "dates": "04/2026 - 08/2026",
+        "points": [
+            "Resolved hardware, software and network issues for global clients over chat, email and calls.",
+            "Used CRM tools and SOPs to keep a high First Contact Resolution rate within AHT and SLA limits.",
+            "Documented every interaction and escalated unresolved bugs to Level 2/3 engineering teams.",
+        ],
+    },
+    {
+        "role": "IT Intern",
+        "org": "Arki Techno Consultants Pvt Ltd, Chamba",
+        "dates": "10/2023 - 03/2024",
+        "points": [
+            "Installed, configured and maintained computer systems and software.",
+            "Troubleshot hardware, software and network issues and handled basic IT service requests.",
+        ],
+    },
+]
 
-@app.errorhandler(Exception)
-def handle_error(e):
-    return str(e), 500
+EDUCATION = [
+    {
+        "title": "Minor in CSE & Advanced Technology",
+        "org": "IIT Mandi",
+        "dates": "10/2024 - 11/2025",
+        "note": "GPA 7.7 / 10 (Computer Science)",
+    },
+    {
+        "title": "Bachelor of Computer Application (BCA)",
+        "org": "Uttarakhand Open University, Dehradun",
+        "dates": "2022 - 05/2026",
+        "note": "GPA 6.0 / 10",
+    },
+]
 
-def init_db():
-    conn = sqlite3.connect('portfolio.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS contacts
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name TEXT NOT NULL,
-                  email TEXT NOT NULL,
-                  message TEXT NOT NULL,
-                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    conn.commit()
-    conn.close()
+SKILLS = [
+    ("fa-language", "Languages", ["English (Native)", "Hindi (Native)"]),
+    (
+        "fa-tags",
+        "AI Data Work",
+        ["Text annotation", "Labelling guidelines", "Quality checking", "Data entry", "Documentation"],
+    ),
+    (
+        "fa-code",
+        "Development",
+        ["Python", "Flask", "JavaScript", "React.js", "HTML & CSS", "Bootstrap", "Git & GitHub"],
+    ),
+    (
+        "fa-screwdriver-wrench",
+        "Tools",
+        ["Excel", "Google Sheets", "Make.com", "Airtable", "Glide", "CRM tools"],
+    ),
+]
 
-# Routes
-@app.route('/')
+CERTIFICATIONS = [
+    "Oracle AI Foundations Associate",
+    "Python Full Stack Development",
+    "Diploma in Computer Application (MS Office and data management)",
+]
+
+PROJECTS = [
+    {
+        "name": "AI Resume Screener",
+        "description": (
+            "Ranks candidates against a job description. Extracts text from PDF resumes "
+            "and scores them with TF-IDF vectors and cosine similarity, with a Streamlit "
+            "interface for uploading resumes and viewing results."
+        ),
+        "tags": ["Python", "NLP", "scikit-learn", "Streamlit"],
+        "github": "https://github.com/ShivamRamola/Resume-Screener",
+        "live": None,
+    },
+    {
+        "name": "Portfolio Website",
+        "description": (
+            "This site. A responsive Flask app with light and dark themes, deployed on "
+            "Vercel, with no database or admin surface to maintain."
+        ),
+        "tags": ["Python", "Flask", "Bootstrap", "Vercel"],
+        "github": "https://github.com/ShivamRamola/portfolio-website",
+        "live": "https://portfolio-website-tawny-phi-56.vercel.app/",
+    },
+    {
+        "name": "Banking System",
+        "description": (
+            "Console banking app with account creation, SHA-256 hashed passwords, "
+            "deposits, withdrawals and a transaction history, using file-based storage."
+        ),
+        "tags": ["Python", "File handling", "Hashing"],
+        "github": "https://github.com/ShivamRamola/Banking-System",
+        "live": None,
+    },
+    {
+        "name": "URL Shortener",
+        "description": (
+            "Command-line URL shortener that generates 6-character codes with MD5, "
+            "avoids duplicates and resolves short links back to the original URL."
+        ),
+        "tags": ["Python", "Hashing", "CLI"],
+        "github": "https://github.com/ShivamRamola/URL-Shortner",
+        "live": None,
+    },
+]
+
+
+@app.context_processor
+def inject_globals():
+    return {"site": SITE, "year": datetime.now().year}
+
+
+@app.route("/")
 def home():
-    return render_template('index.html')
+    return render_template("index.html", projects=PROJECTS[:3])
 
-@app.route('/about')
+
+@app.route("/about")
 def about():
-    return render_template('about.html')
+    return render_template(
+        "about.html",
+        experience=EXPERIENCE,
+        education=EDUCATION,
+        skills=SKILLS,
+        certifications=CERTIFICATIONS,
+    )
 
-@app.route('/projects')
+
+@app.route("/projects")
 def projects():
-    projects = [
-        {
-            'name': 'Portfolio Website',
-            'description': 'Personal portfolio built with Flask and SQLite',
-            'tech': 'Python, Flask, SQLite, HTML, CSS',
-            'github': 'https://github.com/ShivamRamola/portfolio-website',
-            'Live': "https://portfolio-website-omega-weld-49.vercel.app/",
-        },
-        {
-            'name': 'URL Shortener',
-            'description': 'A simple URL shortener built with Flask',
-            'tech': 'Python',
-            'github': 'https://github.com/ShivamRamola/URL-Shortner',
-            'Live': '#'
-        },
-        {
-            'name': 'Banking System',
-            'description': 'A console based banking system application',
-            'tech': 'Python',
-            'github': 'https://github.com/ShivamRamola/Banking-System',
-            'Live': '#'
-        },
-        {
-            'name': "Resume Screener",
-            'description': 'A tool to screen resumes using NLP',
-            'tech': 'Python, NLP',
-            'github': 'https://github.com/ShivamRamola/Resume-Screener',
-            'Live': '#'
-        }
-    ]
-    return render_template('projects.html', projects=projects)
+    return render_template("projects.html", projects=PROJECTS)
 
-@app.route('/contact', methods=['GET', 'POST'])
+
+@app.route("/contact")
 def contact():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        message = request.form['message']
-        
-        # Save to database
-        conn = sqlite3.connect('portfolio.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)",
-                  (name, email, message))
-        conn.commit()
-        conn.close()
-        
-        flash('Message sent successfully!', 'success')
-        return redirect(url_for('contact'))
-    
-    return render_template('contact.html')
+    return render_template("contact.html")
 
-@app.route('/admin')
-def admin():
-    # View all messages (admin panel)
-    conn = sqlite3.connect('portfolio.db')
-    messages = conn.execute("SELECT * FROM contacts ORDER BY created_at DESC").fetchall()
-    conn.close()
-    
-    return render_template('admin.html', messages=messages)
 
-if __name__ == '__main__':
-    init_db()
+@app.errorhandler(404)
+def not_found(_e):
+    return render_template("404.html"), 404
+
+
+if __name__ == "__main__":
     app.run(debug=True)
